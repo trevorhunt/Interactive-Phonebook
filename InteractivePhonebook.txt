@@ -1,0 +1,168 @@
+/* Trevor Hunt
+Lab 8
+March 5 2020
+CECS 130-02
+This is an interactive phonebook*/
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <time.h>
+
+struct contactinfo{		//structure storing the first and last name as well as the phone number of the contacts
+	char firstname[20];
+	char lastname[20];
+	char phonenumber[20];		//int couldn't handle the "-"s
+};
+
+	char tempfirst[20];		//for deleting
+	char templast[20];
+	char tempnum[20];
+
+int main(){
+	int operation = 0;
+	int contactnum = 0;
+	int *ptr;
+	struct contactinfo contact[contactnum];		//initialize structure with contact[contactnum]
+	char filename[30];
+	char line[60];
+	FILE *ffile;
+	
+	
+	do{
+		printf("Phonebook Application:\n\t1) Add contact\n\t2) Delete contact\n\t3) Show phone book\n\t4) Alphabetically sort the contacts by first name\n\t5) Find phone number for name\n\t6) Randomly select contact\n\t7) Delete all contacts\n\t8) Store contacts in file\n\t9) Retrieve entries from file");		//menu
+		printf("\nWhat do you want to do: ");
+		scanf("%d", &operation);
+		int counter = 0;		//initialize the counters
+		int i = 0;
+		int notfound = 0;
+		switch(operation){
+			case 1:		//add contact
+				contactnum++;		//one more contact
+				if (malloc(contactnum * sizeof(contact)) == NULL){		//testing if enough memory
+					printf("\nNot enough memory");
+				}
+				else{
+					printf("\nFirst Name: ");		//asks for first name
+					scanf("%s", contact[contactnum].firstname);		//accepts first name
+					printf("\nLast Name: ");		//asks for last name
+					scanf("%s", contact[contactnum].lastname);		//accepts last name
+					printf("\nPhone Number: ");		//asks for phone number
+					scanf("%s", contact[contactnum].phonenumber);		//accepts phone number
+					printf("\nContact added to phone book");
+				}
+				break;
+			case 2:		//delete contact
+				printf("\nFirst Name: ");		//asks for first name
+				scanf("%s", tempfirst);		//accepts first name
+				printf("\nLast Name: ");		//asks for last name
+				scanf("%s", templast);		//accepts last name
+				for (i = 1; i <= contactnum; i++){		//cycles through contact list
+					if (strcmp(tempfirst, contact[i].firstname) == 0 && strcmp(templast, contact[i].lastname) == 0){		//if entered first names and last names match
+						for (counter = i; counter <= contactnum; counter++){
+							strcpy(contact[counter].firstname, contact[counter+1].firstname);		//overwriting the contact
+							strcpy(contact[counter].lastname, contact[counter+1].lastname);
+							strcpy(contact[counter].phonenumber, contact[counter+1].phonenumber);
+						}
+						contactnum--;		//removing contact
+						notfound++;		//recording that a match was found
+						printf("\nRecord deleted from the phone book");
+					}
+				}
+				if (notfound == 0){		//reporting if no match was found
+					printf("\nName not found in phone book");
+				}
+				break;
+			case 3:
+				printf("\nContacts:");
+				for (i = 1; i <= contactnum; i++){		//cycle through contact list
+					printf("\n\t%s %s: %s", contact[i].firstname, contact[i].lastname, contact[i].phonenumber);		//prints while cycling
+				}
+				if (contactnum == 0){
+					printf("\n\tThere are currently no contacts");		//tell no contacts instead of leaving blank
+				}
+				break;
+			case 4:
+				for (i = 1; i <= contactnum; i++){
+					for (counter = i + 1; counter <= contactnum; counter++){
+						if (strcmp(contact[i].firstname, contact[counter].firstname) > 0){		//bubble sort
+							
+							strcpy(tempfirst, contact[i].firstname);
+							strcpy(contact[i].firstname, contact[counter].firstname);
+							strcpy(contact[counter].firstname, tempfirst);
+						
+							strcpy(templast, contact[i].lastname);
+							strcpy(contact[i].lastname, contact[counter].lastname);
+							strcpy(contact[counter].lastname, templast);
+							
+							strcpy(tempnum, contact[i].phonenumber);
+							strcpy(contact[i].phonenumber, contact[counter].phonenumber);
+							strcpy(contact[counter].phonenumber, tempnum);		
+						}
+					}
+				}
+				printf("Sorted");
+				break;
+			case 5:
+				printf("\nFirst Name: ");		//asks for first name
+				scanf("%s", tempfirst);		//accepts first name
+				printf("\nLast Name: ");		//asks for last name
+				scanf("%s", templast);		//accepts last name
+				for (i = 1; i <= contactnum; i++){		//cycles through contact list
+					if (strcmp(tempfirst, contact[i].firstname) == 0 && strcmp(templast, contact[i].lastname) == 0){		//if entered first names and last names match
+						printf("\n%s %s: %s", tempfirst, templast, contact[i].phonenumber);
+						notfound++;
+					}
+				}
+				if (notfound == 0){
+					printf("\nName not in contacts");
+				}
+				break;
+			case 6:
+				srand(time(NULL));		//Set seed to current time
+				int randnum = 0;
+				randnum = rand() % contactnum + 1;
+				printf("\t%s %s: %s", contact[randnum].firstname, contact[randnum].lastname, contact[randnum].phonenumber);
+				break;
+			case 7:
+				contactnum = 0;		//remove all contacts
+				break;
+			case 8:
+				printf("What file would you like to add the contacts to?\n");		//ask for file
+				scanf("%s", filename);
+				printf("\tWriting to %s", &filename);
+					
+				ffile = fopen(filename, "w");		//open file of choice
+				for (i = 1; i <= contactnum; i++){		//cycle through contact list
+					fprintf(ffile, "%s %s: %s\n", contact[i].firstname, contact[i].lastname, contact[i].phonenumber);
+				}
+				fclose(ffile);
+				break;			
+			case 9:
+				printf("What file would you like to take the contacts from?\n");		//asking for file
+				scanf("%s", filename);
+				if(ffile == NULL){
+					printf("\nCan not open file, contacts.txt will be used instead");		//default
+					ffile = fopen("contacts.txt", "r");
+					for (i = 0; i <= contactnum - 1; i++){		//while not end of file
+						fgets(line, 80, ffile);		//gets lines
+						puts(line);		//prints lines
+					}
+				}
+				else{
+					printf("tTaking from %s\n", &filename);
+					ffile = fopen(filename, "r");		//read file
+					for (i = 0; i <= contactnum - 1; i++){		//while not end of file
+						fgets(line, 80, ffile);		//gets lines
+						puts(line);		//prints lines
+					}
+				}
+				fclose(ffile);
+				break;
+		}
+		printf("\n\n");		//spacing
+	} while (operation == 1 || operation == 2 || operation == 3 || operation == 4 || operation == 5 || operation == 6 || operation == 7 || operation == 8 || operation == 9);		//loop while choosing valid operations
+	free(contact);
+	printf("\nFarewell");
+	return 0;
+}
